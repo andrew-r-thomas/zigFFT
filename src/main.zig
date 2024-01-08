@@ -2,10 +2,7 @@ const std = @import("std");
 const testing = std.testing;
 const assert = std.debug.assert;
 const complex = std.math.Complex;
-
-export fn add(a: i32, b: i32) i32 {
-    return a + b;
-}
+const print = std.debug.print;
 
 const signal_type = complex(f32);
 
@@ -19,12 +16,28 @@ pub fn create_FFT(comptime size: usize, comptime signal: [size]signal_type) type
         signal: signal,
         fn do_FFT(current_signal: []signal_type) []signal_type {
             if (current_signal.len == 1) return current_signal;
+
+            var evens: signal_type[current_signal.len / 2] = undefined;
+            var odds: signal_type[current_signal.len / 2] = undefined;
+            for (current_signal, 0..) |value, i| {
+                if (i % 2 == 0) {
+                    evens[i / 2] = value;
+                } else {
+                    odds[@floor(i / 2)] = value;
+                }
+            }
+
+            const fft_e = do_FFT(evens);
+            const fft_o = do_FFT(odds);
+
+            return fft_e + fft_o;
         }
     };
 }
 
 test "power of two check" {
-    const signal_bad = [5]signal_type{ 1.0, 2.0, 3.0, 4.0, 5.0 };
-    const fft_bad = create_FFT(5, signal_bad);
-    try testing.expect(add(3, 7) == 10);
+    const signal: [4]signal_type = .{ signal_type{ .im = 0, .re = 1.0 }, signal_type{ .im = 0, .re = 1.0 }, signal_type{ .im = 0, .re = 1.0 }, signal_type{ .im = 0, .re = 1.0 } };
+    const fft = create_FFT(4, signal);
+    // const result = fft.do_FFT(&signal);
+    print("{any}", .{fft.signal});
 }
