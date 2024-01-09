@@ -16,24 +16,24 @@ fn fft(comptime size: usize, signal: [size]complex) [size]complex {
     var mutable_signal = signal;
 
     // first we do a bit reversal
-    for (mutable_signal, 0..) |val, i| {
-        _ = val;
-        const index: u16 = @intCast(i);
-        const reversed: u16 = @bitReverse(index);
-        print("index: {d}\n", .{index});
-        print("reversed: {d}\n", .{reversed});
+    var newIdx: [size / 2]usize = [_]usize{0} ** (size / 2);
+    var len: u16 = 1;
+    while (newIdx[(size / 2) - 1] == 0) : (len *= 2) {
+        const add = size / (len * 2);
 
-        // if (i <= reversed) {
-        //mutable_signal[i] = mutable_signal[reversed];
-        //mutable_signal[reversed] = val;
-        //}
+        for (len..(2 * len)) |i| {
+            newIdx[i] = newIdx[i - len] + add;
+            const temp = mutable_signal[i];
+            mutable_signal[i] = mutable_signal[newIdx[i]];
+            mutable_signal[newIdx[i]] = temp;
+        }
     }
 
     return signal;
 }
 
 test "power of two check" {
-    const signal: [4]complex = .{ complex{ .im = 0, .re = 1.0 }, complex{ .im = 0, .re = 2.0 }, complex{ .im = 0, .re = 3.0 }, complex{ .im = 0, .re = 4.0 } };
-    const result = fft(4, signal);
+    const signal: [8]complex = .{ complex{ .im = 0, .re = 1.0 }, complex{ .im = 0, .re = 2.0 }, complex{ .im = 0, .re = 3.0 }, complex{ .im = 0, .re = 4.0 }, complex{ .im = 0, .re = 5.0 }, complex{ .im = 0, .re = 6.0 }, complex{ .im = 0, .re = 7.0 }, complex{ .im = 0, .re = 8.0 } };
+    const result = fft(8, signal);
     print("{any}", .{result});
 }
