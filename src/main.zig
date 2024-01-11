@@ -1,14 +1,20 @@
 const std = @import("std");
 const assert = std.debug.assert;
+const testing = std.testing;
 const print = std.debug.print;
 
 const complex = std.math.Complex(f32);
 
-fn fft(comptime size: usize, signal: [size]complex) [size]complex {
+const FFTError = error{
+    NonPowerOfTwo,
+    LargeSignal,
+};
+
+fn fft(comptime size: usize, signal: [size]complex) ![size]complex {
     // make sure that we have a power of two
     // and that the indecies can be represented as u16 for bit reversal
-    assert(size % 2 == 0);
-    assert(size <= 65535);
+    if (size % 2 != 0) return FFTError.NonPowerOfTwo;
+    if (size <= 65535) return FFTError.LargeSignal;
 
     var mutable_signal = signal;
 
@@ -51,9 +57,8 @@ fn fft(comptime size: usize, signal: [size]complex) [size]complex {
 }
 
 test "power of two check" {
-    const signal: [8]complex = .{ complex{ .im = 0, .re = 0.0 }, complex{ .im = 0, .re = 1.0 }, complex{ .im = 0, .re = 2.0 }, complex{ .im = 0, .re = 3.0 }, complex{ .im = 0, .re = 4.0 }, complex{ .im = 0, .re = 5.0 }, complex{ .im = 0, .re = 6.0 }, complex{ .im = 0, .re = 7.0 } };
-    const result = fft(8, signal);
-    for (result) |num| {
-        print("\n{any}", .{num});
-    }
+    const signal: [7]complex = .{ complex{ .im = 0, .re = 0.0 }, complex{ .im = 0, .re = 1.0 }, complex{ .im = 0, .re = 2.0 }, complex{ .im = 0, .re = 3.0 }, complex{ .im = 0, .re = 4.0 }, complex{ .im = 0, .re = 5.0 }, complex{ .im = 0, .re = 6.0 } };
+    try testing.expect(fft(7, signal) == FFTError.NonPowerOfTwo);
 }
+
+test "large input check" {}
