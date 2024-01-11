@@ -12,9 +12,6 @@ fn fft(comptime size: usize, signal: [size]complex) [size]complex {
     assert(size % 2 == 0);
     assert(size <= 65535);
 
-    var out: [size]complex = undefined;
-    _ = out;
-
     var mutable_signal = signal;
 
     // first we do a bit reversal
@@ -32,7 +29,6 @@ fn fft(comptime size: usize, signal: [size]complex) [size]complex {
     }
 
     // then we do the movie magic
-    // TODO: lots of type conversion
     const n: f32 = @floatFromInt(size);
     for (1..@log2(n)) |i| {
         const m = std.math.pow(usize, 2, i);
@@ -46,7 +42,7 @@ fn fft(comptime size: usize, signal: [size]complex) [size]complex {
             for (0..(m / 2 - 1)) |j| {
                 const temp = w.mul(mutable_signal[k + j + (m / 2)]);
                 const uemp = mutable_signal[k + j];
-                mutable_signal[k + j] = temp.add(uemp);
+                mutable_signal[k + j] = uemp.add(temp);
                 mutable_signal[k + j + (m / 2)] = uemp.sub(temp);
                 w = w.mul(twiddle);
             }
@@ -59,8 +55,7 @@ fn fft(comptime size: usize, signal: [size]complex) [size]complex {
 test "power of two check" {
     const signal: [8]complex = .{ complex{ .im = 0, .re = 0.0 }, complex{ .im = 0, .re = 1.0 }, complex{ .im = 0, .re = 2.0 }, complex{ .im = 0, .re = 3.0 }, complex{ .im = 0, .re = 4.0 }, complex{ .im = 0, .re = 5.0 }, complex{ .im = 0, .re = 6.0 }, complex{ .im = 0, .re = 7.0 } };
     const result = fft(8, signal);
-    print("\n", .{});
     for (result) |num| {
-        print("{any}\n", .{num});
+        print("\n{any}", .{num});
     }
 }
