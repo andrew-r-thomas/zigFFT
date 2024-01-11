@@ -28,16 +28,16 @@ fn fft(comptime size: usize, signal: [size]complex) [size]complex {
 
     // then we do the movie magic
     const n: f32 = @floatFromInt(size);
-    for (1..@log2(n)) |i| {
+    for (1..(@log2(n) + 1)) |i| {
         const m = std.math.pow(usize, 2, i);
         const m_float: f32 = @floatFromInt(m);
         const x: f32 = (-2 * std.math.pi) / m_float;
         const twiddle = complex{ .re = @cos(x), .im = @sin(x) };
 
         var k: usize = 0;
-        while (k < (size - 1)) : (k += m) {
+        while (k < size) : (k += m) {
             var w = complex{ .im = 0, .re = 1 };
-            for (0..((m / 2) - 1)) |j| {
+            for (0..(m / 2)) |j| {
                 const temp = w.mul(mutable_signal[k + j + (m / 2)]);
                 const uemp = mutable_signal[k + j];
                 mutable_signal[k + j] = uemp.add(temp);
