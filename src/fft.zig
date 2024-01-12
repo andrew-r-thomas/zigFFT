@@ -2,21 +2,21 @@ const std = @import("std");
 
 const complex = std.math.Complex(f32);
 
-const FFTError = error{
+pub const FFTError = error{
     NonPowerOfTwo,
     LargeSignal,
 };
 
-pub fn create_FFT(comptime size: usize) type {
+pub fn create_FFT(comptime size: usize) !type {
+    // make sure that we have a power of two
+    // and that the indecies can be represented as u16 for bit reversal
+    if (size % 2 != 0) return FFTError.NonPowerOfTwo;
+    if (size >= 65535) return FFTError.LargeSignal;
+
+    const FFTData = struct { reals: [size]f32, imaginaries: [size]f32 };
+
     return struct {
-        pub const FFTData = struct { reals: [size]f32, imaginaries: [size]f32 };
-
-        pub fn run(signal: [size]f32) !FFTData {
-            // make sure that we have a power of two
-            // and that the indecies can be represented as u16 for bit reversal
-            if (size % 2 != 0) return FFTError.NonPowerOfTwo;
-            if (size <= 65535) return FFTError.LargeSignal;
-
+        pub fn run(signal: [size]f32) FFTData {
             var out = FFTData{ .reals = signal, .imaginaries = [_]f32{0} ** size };
 
             // first we do a bit reversal
