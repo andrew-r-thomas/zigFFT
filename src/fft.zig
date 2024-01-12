@@ -14,6 +14,10 @@ pub fn create_FFT(comptime size: usize) !type {
     if (size >= 65535) return FFTError.LargeSignal;
 
     const FFTData = struct { reals: [size]f32, imaginaries: [size]f32 };
+    const twiddle = @Vector(size, complex);
+    const n: f32 = @floatFromInt(size);
+    const log = @log2(n);
+    const hmm = [log]usize{1..log + 1};
 
     return struct {
         pub fn run(signal: [size]f32) FFTData {
