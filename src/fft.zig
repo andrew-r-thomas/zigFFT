@@ -4,20 +4,20 @@ const complex = std.math.Complex(f32);
 
 pub const FFTError = error{
     NonPowerOfTwo,
-    LargeSignal,
 };
 
+// for now, A = 2, B = N/2, which is cooley-tukey, but we might expand to other sizes in the future
 pub fn create_FFT(comptime size: usize) !type {
     // make sure that we have a power of two
-    // and that the indecies can be represented as u16 for bit reversal
     if (size % 2 != 0) return FFTError.NonPowerOfTwo;
-    if (size >= 65535) return FFTError.LargeSignal;
+    const A = 
 
     const FFTData = struct { reals: [size]f32, imaginaries: [size]f32 };
-    const twiddle = @Vector(size, complex);
+    const twiddle_vec = @Vector(size, complex);
+    _ = twiddle_vec;
     const n: f32 = @floatFromInt(size);
     const log = @log2(n);
-    const hmm = [log]usize{1..log + 1};
+    _ = log;
 
     return struct {
         pub fn run(signal: [size]f32) FFTData {
@@ -38,7 +38,6 @@ pub fn create_FFT(comptime size: usize) !type {
             }
 
             // then we do the movie magic
-            const n: f32 = @floatFromInt(size);
             for (1..(@log2(n) + 1)) |i| {
                 const m = std.math.pow(usize, 2, i);
                 const m_float: f32 = @floatFromInt(m);

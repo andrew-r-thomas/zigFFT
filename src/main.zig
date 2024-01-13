@@ -8,10 +8,6 @@ test "power of two check" {
     try testing.expect(fft.create_FFT(7) == fft.FFTError.NonPowerOfTwo);
 }
 
-test "sample too large check" {
-    try testing.expect(fft.create_FFT(70000) == fft.FFTError.LargeSignal);
-}
-
 test "simple 8 point test" {
     const signal: [8]f32 = .{ 0, 1, 2, 3, 4, 5, 6, 7 };
     const f = try fft.create_FFT(8);
