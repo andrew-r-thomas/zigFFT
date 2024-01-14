@@ -12,10 +12,24 @@ pub fn create_FFT(comptime size: usize) !type {
 
     const FFTData = struct { reals: [size]f32, imaginaries: [size]f32 };
 
+    // so just thinking out loud here, we can represent a complex number as a matrix,
+    // sooo, idk if this makes sense, but we could vectorize this, and then do the following
+    // const upleft: f32 = 0;
+    // _ = upleft;
+    // const upright: f32 = 0;
+    // _ = upright;
+    // const botleft: f32 = 0;
+    // _ = botleft;
+    // const botright: f32 = 0;
+    // _ = botright;
+    // upleft = (twiddle_table.reals * othertable.reals) + (-twiddle_table.ims * othertable.ims);
+    // etc...
+
     var twiddle_table = struct { reals: [size]f32, ims: [size]f32 }{
         .reals = undefined,
         .ims = undefined,
     };
+
     const n: f32 = @floatFromInt(size);
 
     comptime {
