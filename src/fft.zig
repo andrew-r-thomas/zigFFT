@@ -6,7 +6,6 @@ pub const FFTError = error{
     NonPowerOfTwo,
 };
 
-// for now, A = 2, B = N/2, which is cooley-tukey, but we might expand to other sizes in the future
 pub fn create_FFT(comptime size: usize) !type {
     // make sure that we have a power of two
     if (size % 2 != 0) return FFTError.NonPowerOfTwo;
