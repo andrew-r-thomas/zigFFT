@@ -18,3 +18,5 @@ test "simple 8 point test" {
     try testing.expect(std.mem.eql(f32, &reals, &[8]f32{ 28, -3.999999523162842, -4, -4, -4, -4, -4, -4 }));
     try testing.expect(std.mem.eql(f32, &ims, &[8]f32{ 0, 9.656853675842285, 3.999999761581421, 1.6568536758422852, 0, -1.6568536758422852, -3.999999761581421, -9.656853675842285 }));
 }
+
+// TODO benchmarking

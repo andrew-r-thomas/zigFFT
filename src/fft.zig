@@ -12,7 +12,10 @@ pub fn create_FFT(comptime size: usize) !type {
 
     const FFTData = struct { reals: [size]f32, imaginaries: [size]f32 };
 
-    var twiddle_table: [size]complex = undefined;
+    var twiddle_table = struct { reals: [size]f32, ims: [size]f32 }{
+        .reals = undefined,
+        .ims = undefined,
+    };
     const n: f32 = @floatFromInt(size);
 
     comptime {
@@ -21,8 +24,8 @@ pub fn create_FFT(comptime size: usize) !type {
             const m = std.math.pow(usize, 2, i);
             const m_float: f32 = @floatFromInt(m);
             const x: f32 = (-2 * std.math.pi) / m_float;
-            const twiddle = complex{ .re = @cos(x), .im = @sin(x) };
-            twiddle_table[i] = twiddle;
+            twiddle_table.reals[i] = @cos(x);
+            twiddle_table.ims[i] = @sin(x);
         }
     }
 
@@ -68,7 +71,8 @@ pub fn create_FFT(comptime size: usize) !type {
                         out.reals[k + j + (m / 2)] = second.re;
                         out.imaginaries[k + j + (m / 2)] = second.im;
 
-                        w = w.mul(twiddles[i]);
+                        // TODO
+                        w = w.mul(complex{ .re = twiddles.reals[i], .im = twiddles.ims[i] });
                     }
                 }
             }
