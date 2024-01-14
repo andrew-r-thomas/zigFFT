@@ -16,16 +16,18 @@ pub fn create_FFT(comptime size: usize) !type {
     var twiddle_table: [size]complex = undefined;
     const n: f32 = @floatFromInt(size);
 
-    // precompute twiddle factors
-    // TODO there is definitely a way to do this at comptime
-    for (1..(@log2(n) + 1)) |i| {
-        const m = std.math.pow(usize, 2, i);
-        const m_float: f32 = @floatFromInt(m);
-        const x: f32 = (-2 * std.math.pi) / m_float;
-        const twiddle = complex{ .re = @cos(x), .im = @sin(x) };
-        twiddle_table[i] = twiddle;
+    comptime {
+        // precompute twiddle factors
+        for (1..(@log2(n) + 1)) |i| {
+            const m = std.math.pow(usize, 2, i);
+            const m_float: f32 = @floatFromInt(m);
+            const x: f32 = (-2 * std.math.pi) / m_float;
+            const twiddle = complex{ .re = @cos(x), .im = @sin(x) };
+            twiddle_table[i] = twiddle;
+        }
     }
 
+    // I dont like this
     const twiddles = twiddle_table;
 
     return struct {
