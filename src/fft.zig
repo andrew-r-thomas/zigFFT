@@ -12,11 +12,17 @@ pub fn create_FFT(comptime size: usize) !type {
     if (size % 2 != 0) return FFTError.NonPowerOfTwo;
 
     const FFTData = struct { reals: [size]f32, imaginaries: [size]f32 };
-    const twiddle_vec = @Vector(size, complex);
-    _ = twiddle_vec;
+    const twiddle_table: [size]complex = undefined;
     const n: f32 = @floatFromInt(size);
-    const log = @log2(n);
-    _ = log;
+
+    // precompute twiddle factors
+    for (1..(@log2(n) + 1)) |i| {
+        const m = std.math.pow(usize, 2, i);
+        const m_float: f32 = @floatFromInt(m);
+        const x: f32 = (-2 * std.math.pi) / m_float;
+        const twiddle = complex{ .re = @cos(x), .im = @sin(x) };
+        twiddle_table[i] = twiddle;
+    }
 
     return struct {
         pub fn run(signal: [size]f32) FFTData {
@@ -39,11 +45,8 @@ pub fn create_FFT(comptime size: usize) !type {
             // then we do the movie magic
             for (1..(@log2(n) + 1)) |i| {
                 const m = std.math.pow(usize, 2, i);
-                const m_float: f32 = @floatFromInt(m);
-                const x: f32 = (-2 * std.math.pi) / m_float;
-                const twiddle = complex{ .re = @cos(x), .im = @sin(x) };
-
                 var k: usize = 0;
+
                 // TODO: this while loop can be SIMDed
                 while (k < size) : (k += m) {
                     var w = complex{ .im = 0, .re = 1 };
@@ -60,7 +63,7 @@ pub fn create_FFT(comptime size: usize) !type {
                         out.reals[k + j + (m / 2)] = second.re;
                         out.imaginaries[k + j + (m / 2)] = second.im;
 
-                        w = w.mul(twiddle);
+                        w = w.mul(twiddle_table[i]);
                     }
                 }
             }
