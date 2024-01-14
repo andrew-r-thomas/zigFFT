@@ -12,10 +12,12 @@ pub fn create_FFT(comptime size: usize) !type {
     if (size % 2 != 0) return FFTError.NonPowerOfTwo;
 
     const FFTData = struct { reals: [size]f32, imaginaries: [size]f32 };
-    const twiddle_table: [size]complex = undefined;
+
+    var twiddle_table: [size]complex = undefined;
     const n: f32 = @floatFromInt(size);
 
     // precompute twiddle factors
+    // TODO there is definitely a way to do this at comptime
     for (1..(@log2(n) + 1)) |i| {
         const m = std.math.pow(usize, 2, i);
         const m_float: f32 = @floatFromInt(m);
@@ -23,6 +25,8 @@ pub fn create_FFT(comptime size: usize) !type {
         const twiddle = complex{ .re = @cos(x), .im = @sin(x) };
         twiddle_table[i] = twiddle;
     }
+
+    const twiddles = twiddle_table;
 
     return struct {
         pub fn run(signal: [size]f32) FFTData {
@@ -63,7 +67,7 @@ pub fn create_FFT(comptime size: usize) !type {
                         out.reals[k + j + (m / 2)] = second.re;
                         out.imaginaries[k + j + (m / 2)] = second.im;
 
-                        w = w.mul(twiddle_table[i]);
+                        w = w.mul(twiddles[i]);
                     }
                 }
             }
