@@ -10,7 +10,6 @@ pub const FFTError = error{
 pub fn create_FFT(comptime size: usize) !type {
     // make sure that we have a power of two
     if (size % 2 != 0) return FFTError.NonPowerOfTwo;
-    const A = 
 
     const FFTData = struct { reals: [size]f32, imaginaries: [size]f32 };
     const twiddle_vec = @Vector(size, complex);
