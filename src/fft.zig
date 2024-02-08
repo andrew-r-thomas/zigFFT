@@ -10,7 +10,7 @@ pub fn FFT(comptime size: usize) !type {
     // make sure that we have a power of two
     if (size % 2 != 0) return FFTError.NonPowerOfTwo;
 
-    // const SignalVec: type = @Vector(size, f32);
+    const SignalVec: type = @Vector(size, f32);
 
     const FFTData = struct {
         reals: [size]f32,
@@ -31,6 +31,11 @@ pub fn FFT(comptime size: usize) !type {
 
     return struct {
         pub fn run(signal: [size]f32) FFTData {
+            var real_vec: SignalVec = undefined;
+            _ = real_vec;
+            var im_vec: SignalVec = undefined;
+            _ = im_vec;
+
             var out = FFTData{ .reals = signal, .imaginaries = [_]f32{0} ** size };
 
             // first we do a bit reversal
