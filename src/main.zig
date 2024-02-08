@@ -5,13 +5,13 @@ const print = std.debug.print;
 const fft = @import("fft.zig");
 
 test "power of two check" {
-    try testing.expect(fft.create_FFT(7) == fft.FFTError.NonPowerOfTwo);
+    try testing.expect(fft.FFT(7) == fft.FFTError.NonPowerOfTwo);
 }
 
 test "simple 8 point test" {
     const signal: [8]f32 = .{ 0, 1, 2, 3, 4, 5, 6, 7 };
-    const f = try fft.create_FFT(8);
-    const out = f.run(signal);
+    const f = try fft.FFT(8);
+    const out = f.run(&signal);
     const reals = out.reals;
     const ims = out.imaginaries;
 
