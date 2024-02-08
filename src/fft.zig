@@ -10,17 +10,18 @@ pub fn FFT(comptime size: usize) !type {
     // make sure that we have a power of two
     if (size % 2 != 0) return FFTError.NonPowerOfTwo;
 
-    const Vec: type = @Vector(size, f32);
+    const SignalVec: type = @Vector(size, f32);
 
     const FFTData = struct {
-        reals: Vec,
-        imaginaries: Vec,
+        reals: SignalVec,
+        imaginaries: SignalVec,
     };
 
     const n: f32 = @floatFromInt(size);
+    const TwiddleVec: type = @Vector(@log2(n), f32);
 
     const twiddles = comptime {
-        var twiddle_table = struct { reals: Vec, ims: Vec }{
+        var twiddle_table = struct { reals: TwiddleVec, ims: TwiddleVec }{
             .reals = undefined,
             .ims = undefined,
         };
