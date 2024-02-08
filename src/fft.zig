@@ -6,33 +6,25 @@ pub const FFTError = error{
     NonPowerOfTwo,
 };
 
-pub fn create_FFT(comptime size: usize) !type {
+pub fn FFT(comptime size: usize) !type {
     // make sure that we have a power of two
     if (size % 2 != 0) return FFTError.NonPowerOfTwo;
 
-    const FFTData = struct { reals: [size]f32, imaginaries: [size]f32 };
+    const Vec: type = @Vector(size, f32);
 
-    // so just thinking out loud here, we can represent a complex number as a matrix,
-    // sooo, idk if this makes sense, but we could vectorize this, and then do the following
-    // const upleft: f32 = 0;
-    // _ = upleft;
-    // const upright: f32 = 0;
-    // _ = upright;
-    // const botleft: f32 = 0;
-    // _ = botleft;
-    // const botright: f32 = 0;
-    // _ = botright;
-    // upleft = (twiddle_table.reals * othertable.reals) + (-twiddle_table.ims * othertable.ims);
-    // etc...
-
-    var twiddle_table = struct { reals: [size]f32, ims: [size]f32 }{
-        .reals = undefined,
-        .ims = undefined,
+    const FFTData = struct {
+        reals: Vec,
+        imaginaries: Vec,
     };
 
     const n: f32 = @floatFromInt(size);
 
-    comptime {
+    const twiddles = comptime {
+        var twiddle_table = struct { reals: Vec, ims: Vec }{
+            .reals = undefined,
+            .ims = undefined,
+        };
+
         // precompute twiddle factors
         for (1..(@log2(n) + 1)) |i| {
             const m = std.math.pow(usize, 2, i);
@@ -41,10 +33,9 @@ pub fn create_FFT(comptime size: usize) !type {
             twiddle_table.reals[i] = @cos(x);
             twiddle_table.ims[i] = @sin(x);
         }
-    }
 
-    // I dont like this
-    const twiddles = twiddle_table;
+        return twiddle_table;
+    };
 
     return struct {
         pub fn run(signal: [size]f32) FFTData {
