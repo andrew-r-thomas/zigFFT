@@ -30,8 +30,8 @@ pub fn FFT(comptime size: usize) !type {
     );
 
     return struct {
-        pub fn run(signal: []const f32) FFTData {
-            var out = FFTData{ .reals = signal[0..size].*, .imaginaries = [_]f32{0} ** size };
+        pub fn run(signal: [size]f32) FFTData {
+            var out = FFTData{ .reals = signal, .imaginaries = [_]f32{0} ** size };
 
             // first we do a bit reversal
             var newIdx: [size / 2]usize = [_]usize{0} ** (size / 2);

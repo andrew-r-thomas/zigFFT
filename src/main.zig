@@ -11,7 +11,7 @@ test "power of two check" {
 test "simple 8 point test" {
     const signal: [8]f32 = .{ 0, 1, 2, 3, 4, 5, 6, 7 };
     const f = try fft.FFT(8);
-    const out = f.run(&signal);
+    const out = f.run(signal);
     const reals = out.reals;
     const ims = out.imaginaries;
 
