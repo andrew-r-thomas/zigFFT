@@ -36,7 +36,7 @@ pub fn FFT(comptime size: usize) !type {
             var im_vec: SignalVec = [_]f32{0.0} ** size;
 
             // first we do a bit reversal
-            real_vec = @shuffle(f32, real_vec, null, bit_rev);
+            real_vec = @shuffle(f32, real_vec, undefined, bit_rev);
 
             // then we do the movie magic
             for (1..(@log2(n) + 1)) |i| {
@@ -65,9 +65,9 @@ pub fn FFT(comptime size: usize) !type {
                 }
             }
 
-            return struct {
-                reals: real_vec,
-                ims: im_vec,
+            return FFTData{
+                .reals = real_vec,
+                .imaginaries = im_vec,
             };
         }
     };
@@ -93,16 +93,18 @@ fn build_twiddles(comptime twiddle_size: usize, comptime twiddle_type: type) twi
 
 fn build_bit_rev(comptime size: usize) @Vector(size, usize) {
     var idxs: [size]usize = undefined;
-    var newIdx: [size / 2]usize = [_]usize{0} ** (size / 2);
-    var len: u16 = 1;
-    while (newIdx[(size / 2) - 1] == 0) : (len *= 2) {
-        const add = size / (len * 2);
-
-        for (len..(2 * len)) |i| {
-            newIdx[i] = newIdx[i - len] + add;
-            const temp = idxs[i];
-            idxs[i] = idxs[newIdx[i]];
-            idxs[newIdx[i]] = temp;
+    var current: usize = 0;
+    for (0..(size / 2) - 1) |i| {
+        _ = i;
+        if (current == 0) {
+            idxs[0] = 0;
+            idxs[1] = size / 2;
+            current = 2;
+        } else {
+            for (0..current) |j| {
+                idxs[current + j] = idxs[j] + size / (current * 2);
+            }
+            current *= 2;
         }
     }
 
