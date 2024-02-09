@@ -3,13 +3,9 @@ const testing = std.testing;
 
 const complex = std.math.Complex(f32);
 
-pub const FFTError = error{
-    NonPowerOfTwo,
-};
-
 pub fn FFT(comptime size: usize) !type {
     // make sure that we have a power of two
-    if (size % 2 != 0) return FFTError.NonPowerOfTwo;
+    if (size % 2 != 0) @compileError("input size must be a power of two");
 
     const SignalVec: type = @Vector(size, f32);
 
@@ -18,23 +14,16 @@ pub fn FFT(comptime size: usize) !type {
         imaginaries: [size]f32,
     };
 
-    const n: f32 = @floatFromInt(size);
-    const twiddle_size: usize = @log2(n);
-
-    const twiddles = build_twiddles(
-        twiddle_size,
-        struct {
-            reals: @Vector(twiddle_size, f32),
-            ims: @Vector(twiddle_size, f32),
-        },
-    );
-
-    const bit_rev = build_bit_rev(size);
-
     return struct {
-        // TODO potentially move the comptime values into the struct,
-        // so that we can get a sense of how much memory is being used
-        // and potentially give the user more control over where that memory is allocated
+        const log: f32 = @log2(@as(f32, @floatFromInt(size)));
+        const bit_rev: @Vector(size, f32) = build_bit_rev(size);
+        const twiddles = build_twiddles(
+            @as(usize, log),
+            struct {
+                reals: @Vector(log, f32),
+                ims: @Vector(log, f32),
+            },
+        );
         pub fn real_to_complex(signal: [size]f32) FFTData {
             var real_vec: SignalVec = signal;
             var im_vec: SignalVec = [_]f32{0.0} ** size;
@@ -43,7 +32,7 @@ pub fn FFT(comptime size: usize) !type {
             real_vec = @shuffle(f32, real_vec, undefined, bit_rev);
 
             // then we do the movie magic
-            for (1..(@log2(n) + 1)) |i| {
+            for (1..(log + 1)) |i| {
                 const m = std.math.pow(usize, 2, i);
                 var k: usize = 0;
 
@@ -117,13 +106,13 @@ fn build_bit_rev(comptime size: usize) @Vector(size, usize) {
 }
 
 test "power of two check" {
-    try testing.expect(FFT(7) == FFTError.NonPowerOfTwo);
+    try testing.expect(FFT(7));
 }
 
 test "simple 8 point test" {
     const signal: [8]f32 = .{ 0, 1, 2, 3, 4, 5, 6, 7 };
     const f = try FFT(8);
-    const out = f.run(signal);
+    const out = f.real_to_complex(signal);
     const reals = out.reals;
     const ims = out.imaginaries;
 
