@@ -82,9 +82,9 @@ fn build_twiddles(comptime twiddle_size: usize, comptime twiddle_type: type) twi
     return twiddle_table;
 }
 
-fn build_bit_rev(comptime size: usize) @Vector(size, usize) {
-    var idxs: [size]usize = undefined;
-    var current: usize = 0;
+fn build_bit_rev(comptime size: usize) @Vector(size, i32) {
+    var idxs: [size]i32 = undefined;
+    var current: i32 = 0;
     for (0..(size / 2) - 1) |i| {
         _ = i;
         if (current == 0) {
@@ -99,7 +99,7 @@ fn build_bit_rev(comptime size: usize) @Vector(size, usize) {
         }
     }
 
-    const out: @Vector(size, usize) = idxs;
+    const out: @Vector(size, i32) = idxs;
     return out;
 }
 
