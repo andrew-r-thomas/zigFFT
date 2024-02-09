@@ -18,8 +18,6 @@ pub fn FFT(comptime size: usize) !type {
             },
         );
         pub fn real_to_complex(signal: *const [size]f32, real_out: *[size]f32, im_out: *[size]f32) void {
-            var r_out = real_out;
-            var i_out = im_out;
             var real_vec: @Vector(size, f32) = signal.*;
             var im_vec: @Vector(size, f32) = [_]f32{0.0} ** size;
 
@@ -53,9 +51,8 @@ pub fn FFT(comptime size: usize) !type {
                 }
             }
 
-            // TODO figure out pointer situation
-            r_out = @as([size]f32, real_vec);
-            i_out = @as([size]f32, im_vec);
+            real_out.* = real_vec;
+            im_out.* = im_vec;
         }
     };
 }
