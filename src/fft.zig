@@ -32,7 +32,10 @@ pub fn FFT(comptime size: usize) !type {
     const bit_rev = build_bit_rev(size);
 
     return struct {
-        pub fn run(signal: [size]f32) FFTData {
+        // TODO potentially move the comptime values into the struct,
+        // so that we can get a sense of how much memory is being used
+        // and potentially give the user more control over where that memory is allocated
+        pub fn real_to_complex(signal: [size]f32) FFTData {
             var real_vec: SignalVec = signal;
             var im_vec: SignalVec = [_]f32{0.0} ** size;
 
@@ -60,7 +63,7 @@ pub fn FFT(comptime size: usize) !type {
                         real_vec[k + j + (m / 2)] = second.re;
                         im_vec[k + j + (m / 2)] = second.im;
 
-                        // TODO
+                        // TODO put this in one vec, we can do this at comptime
                         w = w.mul(complex{ .re = twiddles.reals[i - 1], .im = twiddles.ims[i - 1] });
                     }
                 }
