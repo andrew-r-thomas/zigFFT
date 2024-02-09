@@ -7,11 +7,9 @@ pub fn FFT(comptime size: usize) !type {
     // make sure that we have a power of two
     if (size % 2 != 0) @compileError("input size must be a power of two");
 
-    const SignalVec: type = @Vector(size, f32);
-
     const FFTData = struct {
-        reals: [size]f32,
-        imaginaries: [size]f32,
+        reals: *const [size]f32,
+        imaginaries: *const [size]f32,
     };
 
     return struct {
@@ -24,9 +22,9 @@ pub fn FFT(comptime size: usize) !type {
                 ims: @Vector(log, f32),
             },
         );
-        pub fn real_to_complex(signal: [size]f32) FFTData {
-            var real_vec: SignalVec = signal;
-            var im_vec: SignalVec = [_]f32{0.0} ** size;
+        pub fn real_to_complex(signal: *const [size]f32) FFTData {
+            var real_vec: @Vector(size, f32) = signal.*;
+            var im_vec: @Vector(size, f32) = [_]f32{0.0} ** size;
 
             // first we do a bit reversal
             real_vec = @shuffle(f32, real_vec, undefined, bit_rev);
@@ -59,8 +57,8 @@ pub fn FFT(comptime size: usize) !type {
             }
 
             return FFTData{
-                .reals = real_vec,
-                .imaginaries = im_vec,
+                .reals = &real_vec,
+                .imaginaries = &im_vec,
             };
         }
     };
@@ -105,17 +103,13 @@ fn build_bit_rev(comptime size: usize) @Vector(size, usize) {
     return out;
 }
 
-test "power of two check" {
-    try testing.expect(FFT(7));
-}
-
 test "simple 8 point test" {
     const signal: [8]f32 = .{ 0, 1, 2, 3, 4, 5, 6, 7 };
     const f = try FFT(8);
-    const out = f.real_to_complex(signal);
+    const out = f.real_to_complex(&signal);
     const reals = out.reals;
     const ims = out.imaginaries;
 
-    try testing.expect(std.mem.eql(f32, &reals, &[8]f32{ 28, -3.999999523162842, -4, -4, -4, -4, -4, -4 }));
-    try testing.expect(std.mem.eql(f32, &ims, &[8]f32{ 0, 9.656853675842285, 3.999999761581421, 1.6568536758422852, 0, -1.6568536758422852, -3.999999761581421, -9.656853675842285 }));
+    try testing.expect(std.mem.eql(f32, reals, &[8]f32{ 28, -3.999999523162842, -4, -4, -4, -4, -4, -4 }));
+    try testing.expect(std.mem.eql(f32, ims, &[8]f32{ 0, 9.656853675842285, 3.999999761581421, 1.6568536758422852, 0, -1.6568536758422852, -3.999999761581421, -9.656853675842285 }));
 }
