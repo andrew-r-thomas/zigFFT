@@ -17,7 +17,12 @@ pub fn FFT(comptime size: usize) !type {
                 ims: @Vector(log, f32),
             },
         );
-        pub fn real_to_complex(signal: *const [size]f32, real_out: *[size]f32, im_out: *[size]f32) void {
+
+        pub fn real_to_complex(
+            signal: *const [size]f32,
+            real_out: *[size]f32,
+            im_out: *[size]f32,
+        ) void {
             var real_vec: @Vector(size, f32) = signal.*;
             var im_vec: @Vector(size, f32) = [_]f32{0.0} ** size;
 
@@ -33,8 +38,16 @@ pub fn FFT(comptime size: usize) !type {
                 while (k < size) : (k += m) {
                     var w = complex{ .im = 0, .re = 1 };
                     for (0..(m / 2)) |j| {
-                        const temp = w.mul(complex{ .re = real_vec[k + j + (m / 2)], .im = im_vec[k + j + (m / 2)] });
-                        const uemp = complex{ .re = real_vec[k + j], .im = im_vec[k + j] };
+                        const temp = w.mul(
+                            complex{
+                                .re = real_vec[k + j + (m / 2)],
+                                .im = im_vec[k + j + (m / 2)],
+                            },
+                        );
+                        const uemp = complex{
+                            .re = real_vec[k + j],
+                            .im = im_vec[k + j],
+                        };
 
                         const first = uemp.add(temp);
                         const second = uemp.sub(temp);
@@ -46,18 +59,27 @@ pub fn FFT(comptime size: usize) !type {
                         im_vec[k + j + (m / 2)] = second.im;
 
                         // TODO put this in one vec, we can do this at comptime
-                        w = w.mul(complex{ .re = twiddles.reals[i - 1], .im = twiddles.ims[i - 1] });
+                        w = w.mul(
+                            complex{
+                                .re = twiddles.reals[i - 1],
+                                .im = twiddles.ims[i - 1],
+                            },
+                        );
                     }
                 }
             }
 
+            // assign real and imaginary vecs to the given pointers
             real_out.* = real_vec;
             im_out.* = im_vec;
         }
     };
 }
 
-fn build_twiddles(comptime twiddle_size: usize, comptime twiddle_type: type) twiddle_type {
+fn build_twiddles(
+    comptime twiddle_size: usize,
+    comptime twiddle_type: type,
+) twiddle_type {
     var twiddle_table: twiddle_type = twiddle_type{
         .reals = undefined,
         .ims = undefined,
