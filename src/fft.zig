@@ -18,16 +18,22 @@ pub fn FFT(comptime size: usize) !type {
             },
         );
 
+        const data_struct = struct {
+            re: [size]f32,
+            im: [size]f32,
+        };
+
+        var data = data_struct{
+            .re = [_]f32{0.0} ** size,
+            .im = [_]f32{0.0} ** size,
+        };
+
         pub fn real_to_complex(
             signal: *const [size]f32,
-            real_out: *[size]f32,
-            im_out: *[size]f32,
         ) void {
-            var real_vec: @Vector(size, f32) = signal.*;
-            var im_vec: @Vector(size, f32) = [_]f32{0.0} ** size;
-
+            data.re = signal.*;
             // first we do a bit reversal
-            real_vec = @shuffle(f32, real_vec, undefined, bit_rev);
+            data.re = @shuffle(f32, data.re, undefined, bit_rev);
 
             // then we do the movie magic
             for (1..(log + 1)) |i| {
@@ -40,23 +46,23 @@ pub fn FFT(comptime size: usize) !type {
                     for (0..(m / 2)) |j| {
                         const temp = w.mul(
                             complex{
-                                .re = real_vec[k + j + (m / 2)],
-                                .im = im_vec[k + j + (m / 2)],
+                                .re = data.re[k + j + (m / 2)],
+                                .im = data.im[k + j + (m / 2)],
                             },
                         );
                         const uemp = complex{
-                            .re = real_vec[k + j],
-                            .im = im_vec[k + j],
+                            .re = data.re[k + j],
+                            .im = data.im[k + j],
                         };
 
                         const first = uemp.add(temp);
                         const second = uemp.sub(temp);
 
-                        real_vec[k + j] = first.re;
-                        im_vec[k + j] = first.im;
+                        data.re[k + j] = first.re;
+                        data.im[k + j] = first.im;
 
-                        real_vec[k + j + (m / 2)] = second.re;
-                        im_vec[k + j + (m / 2)] = second.im;
+                        data.re[k + j + (m / 2)] = second.re;
+                        data.im[k + j + (m / 2)] = second.im;
 
                         // TODO put this in one vec, we can do this at comptime
                         w = w.mul(
@@ -68,10 +74,6 @@ pub fn FFT(comptime size: usize) !type {
                     }
                 }
             }
-
-            // assign real and imaginary vecs to the given pointers
-            real_out.* = real_vec;
-            im_out.* = im_vec;
         }
     };
 }
@@ -121,14 +123,8 @@ fn build_bit_rev(comptime size: usize) @Vector(size, i32) {
 test "simple 8 point test" {
     const signal: [8]f32 = .{ 0, 1, 2, 3, 4, 5, 6, 7 };
     const f = try FFT(8);
-    var real_out: [8]f32 = undefined;
-    var im_out: [8]f32 = undefined;
-    _ = f.real_to_complex(&signal, &real_out, &im_out);
+    _ = f.real_to_complex(&signal);
 
-    try testing.expect(std.mem.eql(f32, &real_out, &[8]f32{ 28, -3.999999523162842, -4, -4, -4, -4, -4, -4 }));
-    try testing.expect(std.mem.eql(f32, &im_out, &[8]f32{ 0, 9.656853675842285, 3.999999761581421, 1.6568536758422852, 0, -1.6568536758422852, -3.999999761581421, -9.656853675842285 }));
-}
-
-test "real world test" {
-    // TODO
+    try testing.expect(std.mem.eql(f32, &f.data.re, &[8]f32{ 28, -3.999999523162842, -4, -4, -4, -4, -4, -4 }));
+    try testing.expect(std.mem.eql(f32, &f.data.im, &[8]f32{ 0, 9.656853675842285, 3.999999761581421, 1.6568536758422852, 0, -1.6568536758422852, -3.999999761581421, -9.656853675842285 }));
 }
